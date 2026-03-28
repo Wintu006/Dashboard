@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Controle de Insumos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>Controle de Insumos</h1>
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <p id="usuario"></p>
+
+  <label>Insumo</label>
+  <input type="text" id="insumo">
+
+  <label>Quantidade</label>
+  <input type="number" id="quantidade">
+
+  <label>Postos</label>
+  <details>
+    <summary>Selecionar postos</summary>
+    <div id="postos">
+      <label><input type="checkbox" value="Coité"> Coité</label>
+      <label><input type="checkbox" value="Salgadalia"> Salgadalia</label>
+      <label><input type="checkbox" value="Riachão"> Riachão</label>
+      <label><input type="checkbox" value="Nova Fatima"> Nova Fatima</label>
+      <label><input type="checkbox" value="Capela"> Capela</label>
+      <label><input type="checkbox" value="Cliamo"> Cliamo</label>
+      <label><input type="checkbox" value="Retirolandia"> Retirolandia</label>
+      <label><input type="checkbox" value="Valente"> Valente</label>
+      <label><input type="checkbox" value="CIS S. Luz"> CIS S. Luz</label>
+      <label><input type="checkbox" value="M. Isabel S. Luz"> M. Isabel S. Luz</label>
+      <label><input type="checkbox" value="Queimadas"> Queimadas</label>
+      <label><input type="checkbox" value="Nossa Clínica"> Nossa Clínica</label>
+      <label><input type="checkbox" value="Fisiomedic"> Fisiomedic</label>
+      <label><input type="checkbox" value="Monte Santo"> Monte Santo</label>
+    </div>
+  </details>
+
+  <label>Data</label>
+  <input type="date" id="data">
+
+  <button onclick="adicionar()">Salvar</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Insumo</th>
+        <th>Quantidade</th>
+        <th>Posto</th>
+        <th>Data</th>
+      </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+  </table>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+
+<script>
+// 🔐 VERIFICAR USUÁRIO
+async function verificarUsuario() {
+  const { data } = await supabaseClient.auth.getUser();
+
+  if (!data.user) {
+    window.location.href = "login.html";
+  } else {
+    document.getElementById('usuario').innerText = "Logado como: " + data.user.email;
+    carregarDados();
+  }
+}
+
+// 🚪 LOGOUT
+async function logout() {
+  await supabaseClient.auth.signOut();
+  window.location.href = "login.html";
+}
+
+// 📊 CARREGAR DADOS
+let dados = [];
+
+async function carregarDados() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData.user;
+
+  const { data, error } = await supabaseClient
+    .from('envios')
+    .select('*')
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  dados = data;
+  renderizar();
+}
+
+// 🖥️ RENDERIZAR
+function renderizar() {
+  const tbody = document.getElementById('tabela');
+  tbody.innerHTML = '';
+
+  dados.forEach(d => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${d.insumo}</td>
+        <td>${d.quantidade}</td>
+        <td>${d.posto}</td>
+        <td>${d.data}</td>
+      </tr>
+    `;
+  });
+}
+
+// ➕ ADICIONAR
+async function adicionar() {
+  const insumo = document.getElementById('insumo').value;
+  const quantidade = document.getElementById('quantidade').value;
+  const data = document.getElementById('data').value;
+
+  const checkboxes = document.querySelectorAll('#postos input:checked');
+  const postosSelecionados = Array.from(checkboxes).map(cb => cb.value);
+
+  if (!insumo || !quantidade || !data || postosSelecionados.length === 0) {
+    alert('Preencha tudo');
+    return;
+  }
+
+  const { data: userData } = await supabaseClient.auth.getUser();
+  const user = userData.user;
+
+  const registros = postosSelecionados.map(posto => ({
+    user_id: user.id,
+    insumo,
+    quantidade,
+    posto,
+    data
+  }));
+
+  const { error } = await supabaseClient
+    .from('envios')
+    .insert(registros);
+
+  if (error) {
+    alert("Erro ao salvar");
+    console.error(error);
+  } else {
+    alert("Salvo com sucesso 🚀");
+
+    // limpar
+    document.getElementById('insumo').value = '';
+    document.getElementById('quantidade').value = '';
+    document.getElementById('data').value = '';
+    document.querySelectorAll('#postos input').forEach(cb => cb.checked = false);
+
+    carregarDados();
+  }
+}
+
+// 🚀 INICIAR
+window.onload = verificarUsuario;
+</script>
+
+</body>
+</html>
