@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet"/>
+  <title>Recuperar Senha</title>
+</head>
+
+<body>
+  <main class="container">
+    <form onsubmit="recuperarSenha(event)">
+      <h1>Recuperar Senha</h1>
+
+      <div class="input-box">
+        <input type="email" id="email" placeholder="Email">
+        <p>Digite seu email para recuperar a senha</p>
+      </div>
+
+      <button type="submit">Enviar recuperação</button>
+
+      <div>
+        <p><a href="login.html">Voltar ao login</a></p>
+      </div>
+    </form>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="supabase.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
